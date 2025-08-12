@@ -56,10 +56,10 @@ class DiffFDN(nn.Module):
         self.G_SOS = None
         
     def forward(self, x):
-
+        x = x.to(self.device)
         B = to_complex(self.B)
         C = to_complex(self.C)
-        m = self.m  
+        m = self.m.to(self.device)
         V = self.get_feedback_matrix(x)
         D = torch.diag_embed(torch.unsqueeze(x, dim=-1) ** m)
         Gamma = to_complex(torch.diag(self.gain_per_sample**m))
@@ -149,12 +149,12 @@ class DiffFDN(nn.Module):
         num = len(z)
         Gch = (1j*np.zeros((num, self.N))).astype('complex64')
         for ch in range(self.N):
-            Gch[:, ch] = biquad_to_tf(np.reshape(z.numpy(), (num, 1)), G_SOS[ch,:,:,0:3].squeeze(), G_SOS[ch,:,:,3:6].squeeze())
+            Gch[:, ch] = biquad_to_tf(np.reshape(z.cpu().numpy(), (num, 1)), G_SOS[ch,:,:,0:3].squeeze(), G_SOS[ch,:,:,3:6].squeeze())
 
         # this is so ugly, but there no python version of torch.diag_embed
-        self.G = torch.diag_embed(torch.tensor(Gch))
+        self.G = torch.diag_embed(torch.tensor(Gch)).to(self.device)
 
     def set_tone_control(self, z, TC_SOS):
         num = len(z)
-        self.TC = biquad_to_tf(np.reshape(z.numpy(), (num, 1)), TC_SOS[:, 0:3], TC_SOS[:, 3:6])
-        self.TC = torch.tensor(self.TC)
+        self.TC = biquad_to_tf(np.reshape(z.cpu().numpy(), (num, 1)), TC_SOS[:, 0:3], TC_SOS[:, 3:6])
+        self.TC = torch.tensor(self.TC).to(self.device)

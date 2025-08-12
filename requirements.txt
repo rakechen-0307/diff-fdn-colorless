@@ -1,0 +1,8 @@
+tqdm
+scipy
+soundfile
+numpy==1.26.4
+matplotlib
+onnx
+onnxruntime
+h5py
